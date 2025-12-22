@@ -43,10 +43,11 @@ npm run dev
 ```
 
 ### 🎮 How to Play
-1.Click on any empty square to make a move
-2.Players alternate between X and O
-3.The game announces:
-    - Winner when three symbols align
-    - Draw if the board fills without a winner
-4.Use the move history panel to jump back to any previous move
+
+* Click on any empty square to make a move
+* Players alternate between X and O
+* The game announces:
+    * Winner when three symbols align
+    * Draw if the board fills without a winner
+* Use the move history panel to jump back to any previous move
 
