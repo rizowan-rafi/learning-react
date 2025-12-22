@@ -26,7 +26,7 @@ A fully functional, interactive Tic-Tac-Toe game built with **React** and **Tail
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/your-username/tic-tac-toe.git](https://github.com/your-username/tic-tac-toe.git)
+   git clone [https://github.com/your-username/tic-tac-toe.git](https://github.com/rizowan-rafi/learning-react/tree/main/Module%201/Tic-Tac-Toe)
    cd tic-tac-toe
     ```
 
@@ -41,3 +41,12 @@ npm install
 ```bash
 npm run dev
 ```
+
+### 🎮 How to Play
+1.Click on any empty square to make a move
+2.Players alternate between X and O
+3.The game announces:
+    - Winner when three symbols align
+    - Draw if the board fills without a winner
+4.Use the move history panel to jump back to any previous move
+
