@@ -28,12 +28,11 @@ A fully functional, interactive Tic-Tac-Toe game built with **React** and **Tail
    ```bash
    git clone [https://github.com/your-username/tic-tac-toe.git](https://github.com/your-username/tic-tac-toe.git)
    cd tic-tac-toe
-```
+    ```
 
 2. **Installing :**
 
 To get the project running locally, run the following command in your terminal:
-
 ```bash
 npm install
 ```
