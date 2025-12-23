@@ -1,53 +1,62 @@
 # React Tic-Tac-Toe (Time Travel Edition)
 
-A fully functional, interactive Tic-Tac-Toe game built with **React** and **Tailwind CSS**. This project features a "Time Travel" mechanic, allowing players to jump back to any previous move in the game's history.
+A fully functional, interactive Tic-Tac-Toe game built with **React** and **Tailwind CSS**. This project features a **Time Travel** mechanic, allowing players to jump back to any previous move in the game's history, and optionally play against an AI.
+
+---
 
 ## ✨ Features
 
-* **Turn-based Gameplay**: Automatic switching between 'X' and 'O'.
-* **Game Status**: Real-time status indicator for the next player, the winner, or a draw.
-* **Time Travel (History)**: A sidebar that records every move made. Click any move to jump back to that specific point in time.
-* **Interactive UI**: Clean, responsive layout with hover effects and modern styling.
-* **Immutable State**: Built using React best practices for state management and history tracking.
+- **Two Game Modes**:  
+  - **Two-Player Mode**: Human vs Human  
+  - **AI Mode**: Human (X) vs AI (O) with thinking delay
+- **Turn-Based Gameplay**: Automatic switching between X and O
+- **Game Status**: Real-time status indicator for next player, winner, or draw
+- **Time Travel (History)**: Sidebar records every move. Click a move to jump back
+- **AI Thinking Simulation**: Shows “AI is thinking…” before AI moves
+- **Interactive UI**: Clean, responsive layout with hover effects
+- **Immutable State**: Built using React best practices for state and history management
+
+---
 
 ## 🛠️ Tech Stack
 
-* **React**: (Hooks, Functional Components)
-* **Tailwind CSS**: (Utility-first styling)
-* **JavaScript (ES6+)**
+- **React**: Hooks, Functional Components  
+- **Tailwind CSS**: Utility-first styling  
+- **JavaScript (ES6+)**
+
+---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-* [Node.js](https://nodejs.org/) installed on your machine.
-* An existing React project setup (Vite or Create React App).
+
+- [Node.js](https://nodejs.org/) installed on your machine  
+- React project setup (Vite or Create React App)
 
 ### Installation
 
 1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/your-username/tic-tac-toe.git](https://github.com/rizowan-rafi/learning-react/tree/main/Module%201/Tic-Tac-Toe)
-   cd tic-tac-toe
-    ```
-
-2. **Installing :**
-
-To get the project running locally, run the following command in your terminal:
+```bash
+git clone https://github.com/rizowan-rafi/learning-react.git
+cd Module\ 1/Tic-Tac-Toe
+```
+2. **Install dependencies:**
 ```bash
 npm install
 ```
-
-3. **Run the server :**
+3. **Run the development server:**
 ```bash
 npm run dev
 ```
 
 ### 🎮 How to Play
 
-* Click on any empty square to make a move
-* Players alternate between X and O
-* The game announces:
-    * Winner when three symbols align
-    * Draw if the board fills without a winner
-* Use the move history panel to jump back to any previous move
-
+1. Select a game mode: Two Player or vs AI
+2. Click on any empty square to make a move
+3. Players alternate between X and O
+4. The game announces:
+    1. Winner if three symbols align
+    2. Draw if all squares are filled without a winner
+5. Use the move history panel to jump back to any previous move
+6. In AI mode, watch the AI “thinking…” indicator before it makes its move
+7. Click Restart Game anytime to start over
