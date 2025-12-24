@@ -224,3 +224,387 @@ React keeps the state values “fixed” within one render’s event handlers. Y
 
 Variables and event handlers don’t “survive” re-renders. Every render has its own event handlers.
 */
+
+/*
+**Queueing a Series of State Updates
+
+Setting a state variable will queue another render. But sometimes you might want to perform multiple operations on the value before queueing the next render. To do this, it helps to understand how React batches state updates.
+
+
+export default function Counter() {
+  const [number, setNumber] = useState(0);
+
+  return (
+    <>
+      <h1>{number}</h1>
+      <button onClick={() => {
+        setNumber(number + 1);
+        setNumber(number + 1);
+        setNumber(number + 1);
+      }}>+3</button>
+    </>
+  )
+}
+
+However, as you might recall from the previous section, each render’s state values are fixed, so the value of number inside the first render’s event handler is always 0, no matter how many times you call setNumber(1)
+
+But there is one other factor at play here. React waits until all code in the event handlers has run before processing your state updates. This is why the re-render only happens after all these setNumber() calls.
+
+This lets you update multiple state variables—even from multiple components—without triggering too many re-renders. But this also means that the UI won’t be updated until after your event handler, and any code in it, completes. This behavior, also known as batching, makes your React app run much faster.
+
+React does not batch across multiple intentional events like clicks—each click is handled separately. Rest assured that React only does batching when it’s generally safe to do. This ensures that, for example, if the first button click disables a form, the second click would not submit it again.
+
+It is an uncommon use case, but if you would like to update the same state variable multiple times before the next render, instead of passing the next state value like setNumber(number + 1), you can pass a function that calculates the next state based on the previous one in the queue, like setNumber(n => n + 1). It is a way to tell React to “do something with the state value” instead of just replacing it.
+
+export default function Counter() {
+  const [number, setNumber] = useState(0);
+
+  return (
+    <>
+      <h1>{number}</h1>
+      <button onClick={() => {
+        setNumber(n => n + 1);
+        setNumber(n => n + 1);
+        setNumber(n => n + 1);
+      }}>+3</button>
+    </>
+  )
+}
+
+Here, n => n + 1 is called an updater function. When you pass it to a state setter:
+
+React queues this function to be processed after all the other code in the event handler has run.
+During the next render, React goes through the queue and gives you the final updated state.
+
+<button onClick={() => {
+  setNumber(number + 5);
+  setNumber(n => n + 1);
+}}>
+
+here number will 6 
+<button onClick={() => {
+  setNumber(number + 5);
+  setNumber(n => n + 1);
+  setNumber(42);
+}}>
+
+number = 42
+Then React stores 42 as the final result and returns it from useState.
+
+To summarize, here’s how you can think of what you’re passing to the setNumber state setter:
+
+An updater function (e.g. n => n + 1) gets added to the queue.
+Any other value (e.g. number 5) adds “replace with 5” to the queue, ignoring what’s already queued.
+
+After the event handler completes, React will trigger a re-render. During the re-render, React will process the queue. Updater functions run during rendering, so updater functions must be pure and only return the result. Don’t try to set state from inside of them or run other side effects.
+
+It’s common to name the updater function argument by the first letters of the corresponding state variable like
+setEnabled(e => !e);
+setLastName(ln => ln.reverse());
+setFriendCount(fc => fc * 2);
+
+try the Challenge 2 in this part later.try 1 also
+
+
+
+*/
+
+/*
+** Updating Objects in State
+State can hold any kind of JavaScript value, including objects. But you shouldn’t change objects that you hold in the React state directly. Instead, when you want to update an object, you need to create a new one (or make a copy of an existing one), and then set the state to use that copy.
+
+So far you’ve been working with numbers, strings, and booleans. These kinds of JavaScript values are “immutable”, meaning unchangeable or “read-only”. You can trigger a re-render to replace a value like
+const [x, setX] = useState(0);
+setX(5);
+The x state changed from 0 to 5, but the number 0 itself did not change. It’s not possible to make any changes to the built-in primitive values like numbers, strings, and booleans in JavaScript.
+
+consider an object like const [position, setPosition] = useState({ x: 0, y: 0 });
+Technically, it is possible to change the contents of the object itself. This is called a mutation:
+position.x = 5;
+However, although objects in React state are technically mutable, you should treat them as if they were immutable—like numbers, booleans, and strings. Instead of mutating them, you should always replace them.
+In other words, you should treat any JavaScript object that you put into state as read-only.
+
+onPointerMove={e => {
+  position.x = e.clientX;
+  position.y = e.clientY;
+}}
+This code modifies the object assigned to position from the previous render. But without using the state setting function, React has no idea that object has changed. So React does not do anything in response. It’s like trying to change the order after you’ve already eaten the meal. While mutating state can work in some cases, we don’t recommend it. You should treat the state value you have access to in a render as read-only.
+
+To actually trigger a re-render in this case, create a new object and pass it to the state setting function
+onPointerMove={e => {
+  setPosition({
+    x: e.clientX,
+    y: e.clientY
+  });
+}}
+
+here local mutation is fine like
+const nextPosition = {};
+nextPosition.x = e.clientX;
+nextPosition.y = e.clientY;
+setPosition(nextPosition);
+here is nextPosition hold the x and y value.it is local mutation.but when we change the set variable from useState we have to use setter function to change it.
+
+Mutation is only a problem when you change existing objects that are already in state. Mutating an object you’ve just created is okay because no other code references it yet. Changing it isn’t going to accidentally impact something that depends on it. This is called a “local mutation”. You can even do local mutation while rendering. Very convenient and completely okay!
+
+copying a simple object with spread syntax
+  const [person, setPerson] = useState({
+    firstName: 'Barbara',
+    lastName: 'Hepworth',
+    email: 'bhepworth@sculpture.com'
+  });
+to change the name we have to use 
+  function handleFirstNameChange(e) {
+    setPerson({
+    ...person, // Copy the old fields
+    name:e.target.value // But override this one
+    })
+  }
+  
+  Note that the ... spread syntax is “shallow”—it only copies things one level deep. This makes it fast, but it also means that if you want to update a nested property, you’ll have to use it more than once.
+
+You can also use the [ and ] braces inside your object definition to specify a property with a dynamic name like
+ const [person, setPerson] = useState({
+    firstName: 'Barbara',
+    lastName: 'Hepworth',
+    email: 'bhepworth@sculpture.com'
+  });
+
+  function handleChange(e) {
+    setPerson({
+      ...person,
+      [e.target.name]: e.target.value
+    });
+  }
+
+  Updating a nested object  like this
+  const [person, setPerson] = useState({
+  name: 'Niki de Saint Phalle',
+  artwork: {
+    title: 'Blue Nana',
+    city: 'Hamburg',
+    image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+  }
+});
+if we want to update person.artwork.city without mutation(person.artwork.city='Dhaka')
+1. const nextArtwork = { ...person.artwork, city: 'New Delhi' };
+const nextPerson = { ...person, artwork: nextArtwork };
+setPerson(nextPerson);
+2. setPerson({
+  ...person, // Copy other fields
+  artwork: { // but replace the artwork
+    ...person.artwork, // with the same one
+    city: 'New Delhi' // but in New Delhi!
+  }
+});
+
+
+let obj = {
+  name: 'Niki de Saint Phalle',
+  artwork: {
+    title: 'Blue Nana',
+    city: 'Hamburg',
+    image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+  }
+};
+However, “nesting” is an inaccurate way to think about how objects behave. When the code executes, there is no such thing as a “nested” object. You are really looking at two different objects:
+let obj1 = {
+  title: 'Blue Nana',
+  city: 'Hamburg',
+  image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+};
+
+let obj2 = {
+  name: 'Niki de Saint Phalle',
+  artwork: obj1
+};
+
+
+Write concise update logic with Immer 
+If your state is deeply nested, you might want to consider flattening it. But, if you don’t want to change your state structure, you might prefer a shortcut to nested spreads. Immer is a popular library that lets you write using the convenient but mutating syntax and takes care of producing the copies for you. With Immer, the code you write looks like you are “breaking the rules” and mutating an object:
+updatePerson(draft => {
+  draft.artwork.city = 'Lagos';
+});
+
+To try Immer:
+
+Run npm install use-immer to add Immer as a dependency
+Then replace import { useState } from 'react' with import { useImmer } from 'use-immer'
+
+import { useImmer } from 'use-immer';
+ const [person, updatePerson] = useImmer({
+    name: 'Niki de Saint Phalle',
+    artwork: {
+      title: 'Blue Nana',
+      city: 'Hamburg',
+      image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+    }
+  });
+
+to change draft.artwork.city just write 
+updatePerson(draft => {
+  draft.artwork.city = 'Lagos';
+});
+to change the name
+updatePerson(draft => {
+  draft.name = 'Rafi';
+});
+
+*/
+
+/*
+** Updating Arrays in State
+Arrays are mutable in JavaScript, but you should treat them as immutable when you store them in state. Just like with objects, when you want to update an array stored in state, you need to create a new one (or make a copy of an existing one), and then set state to use the new array.
+In JavaScript, arrays are just another kind of object. Like with objects, you should treat arrays in React state as read-only.
+
+we have to avoid the functions or method that change or mutate the real array instead we should use the method that return an array
+avoid that mutate the array like
+adding - push(),unshift()
+removing - pop,shift,splice
+replacing - splice,a[i]=value
+sorting - reversing,sorting
+instead use that return new array like
+adding - concat, [...arr] spread syntax
+removing - 	filter, slice 
+replacing - map 
+sorting - copy the array first(local mutation) then apply reverse or sorting
+
+Unfortunately, slice and splice are named similarly but are very different:
+
+slice lets you copy an array or a part of it.
+splice mutates the array (to insert or delete items).
+In React, you will be using slice (no p!) a lot more often because you don’t want to mutate objects or arrays in state. Updating Objects explains what mutation is and why it’s not recommended for state.
+
+
+- Adding to an array
+push() will mutate an array that we don't want like
+artists.push({
+          id: nextId++,
+          name: name,
+        });
+Instead, create a new array which contains the existing items and a new item at the end. There are multiple ways to do this, but the easiest one is to use the ... array spread syntax:
+setArtists( // Replace the state
+  [ // with a new array
+    ...artists, // that contains all the old items
+    { id: nextId++, name: name } // and one new item at the end
+  ]
+);
+
+if we want to put the new element at the start then
+setArtists( // Replace the state
+  [ // with a new array
+   
+    { id: nextId++, name: name } // and one new item at the start
+      ...artists, // that contains all the old items
+  ]
+);
+
+- Removing from an array
+The easiest way to remove an item from an array is to filter it out. In other words, you will produce a new array that will not contain that item. To do this, use the filter method like
+setArtists(
+  artists.filter(a =>
+  a.id !== artist.id)
+
+Here, artists.filter(a => a.id !== artist.id) means “create an array that consists of those artists whose IDs are different from artist.id”. In other words, each artist’s “Delete” button will filter that artist out of the array, and then request a re-render with the resulting array. Note that filter does not modify the original array.
+
+- Transforming an array
+If you want to change some or all items of the array, you can use map() to create a new array. The function you will pass to map can decide what to do with each item, based on its data or its index (or both).
+    const nextShapes = shapes.map(shape => {
+      if (shape.type === 'square') {
+        // No change
+        return shape;
+      } else {
+        // Return a new circle 50px below
+        return {
+          ...shape,
+          y: shape.y + 50,
+        };
+      }
+    });
+    // Re-render with the new array
+    setShapes(nextShapes);
+
+In this example(above), an array holds coordinates of two circles and a square. When you press the button, it moves only the circles down by 50 pixels. It does this by producing a new array of data using map():
+
+- Replacing items in an array
+It is particularly common to want to replace one or more items in an array. Assignments like arr[0] = 'bird' are mutating the original array, so instead you’ll want to use map for this as well.
+To replace an item, create a new array with map. Inside your map call, you will receive the item index as the second argument. Use it to decide whether to return the original item (the first argument) or something else:
+ const nextCounters = counters.map((c, i) => {
+      if (i === index) {
+        // Increment the clicked counter
+        return c + 1;
+      } else {
+        // The rest haven't changed
+        return c;
+      }
+    });
+    setCounters(nextCounters);
+
+
+- Inserting into an array
+Sometimes, you may want to insert an item at a particular position that’s neither at the beginning nor at the end. To do this, you can use the ... array spread syntax together with the slice() method. The slice() method lets you cut a “slice” of the array. To insert an item, you will create an array that spreads the slice before the insertion point, then the new item, and then the rest of the original array.
+
+const insertAt = 1; // Could be any index
+    const nextArtists = [
+      // Items before the insertion point:
+      ...artists.slice(0, insertAt),
+      // New item:
+      { id: nextId++, name: name },
+      // Items after the insertion point:
+      ...artists.slice(insertAt)
+    ];
+    setArtists(nextArtists);
+In this example(above), the Insert button always inserts at the index 1:
+
+- Making other changes to an array
+you may want to reverse or sort an array. The JavaScript reverse() and sort() methods are mutating the original array, so you can’t use them directly.However, you can copy the array first, and then make changes to it.
+
+    const nextList = [...list];
+    nextList.reverse();
+    setList(nextList);
+
+  However, even if you copy an array, you can’t mutate existing items inside of it directly. This is because copying is shallow—the new array will contain the same items as the original one. So if you modify an object inside the copied array, you are mutating the existing state. For example, code like this is a problem.like
+  const nextList = [...list];
+nextList[0].seen = true; // Problem: mutates list[0]
+setList(nextList);
+
+Although nextList and list are two different arrays, nextList[0] and list[0] point to the same object. So by changing nextList[0].seen, you are also changing list[0].seen. This is a state mutation, which you should avoid!
+
+- Updating objects inside arrays
+Objects are not really located “inside” arrays. They might appear to be “inside” in code, but each object in an array is a separate value, to which the array “points”. This is why you need to be careful when changing nested fields like list[0]. Another person’s artwork list may point to the same element of the array!
+
+When updating nested state, you need to create copies from the point where you want to update, and all the way up to the top level. Let’s see how this works.
+
+const myNextList = [...myList];
+const artwork = myNextList.find(a => a.id === artworkId);
+artwork.seen = nextSeen; // Problem: mutates an existing item
+setMyList(myNextList);
+
+Although the myNextList array itself is new, the items themselves are the same as in the original myList array. So changing artwork.seen changes the original artwork item. That artwork item is also in yourList, which causes the bug. Bugs like this can be difficult to think about, but thankfully they disappear if you avoid mutating state.
+
+
+You can use map to substitute an old item with its updated version without mutation. like
+setMyList(myList.map(artwork => {
+  if (artwork.id === artworkId) {
+    // Create a *new* object with changes
+    return { ...artwork, seen: nextSeen };
+  } else {
+    // No changes
+    return artwork;
+  }
+}));
+
+Here, ... is the object spread syntax used to create a copy of an object.
+
+In general, you should only mutate objects that you have just created. If you were inserting a new artwork, you could mutate it, but if you’re dealing with something that’s already in state, you need to make a copy.
+
+if we use immer than the process will be much easiler like 
+updateMyTodos(draft => {
+  const artwork = draft.find(a => a.id === artworkId);
+  artwork.seen = nextSeen;
+});
+This is because you’re not mutating the original state, but you’re mutating a special draft object provided by Immer. Similarly, you can apply mutating methods like push() and pop() to the content of the draft.
+
+
+
+*/
